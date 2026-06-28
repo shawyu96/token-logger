@@ -72,7 +72,7 @@ HTML = r"""<!DOCTYPE html>
   .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
   .card h2 { font-size: 14px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 12px; }
 
-  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
   .stat { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; text-align: center; }
   .stat .num { font-size: 28px; font-weight: 700; }
   .stat .lbl { font-size: 12px; color: var(--muted); margin-top: 4px; }
@@ -224,10 +224,12 @@ async function load() {
     const calls = sessions.reduce((s, r) => s + r.calls, 0);
     const inp = sessions.reduce((s, r) => s + r.ti, 0);
     const out = sessions.reduce((s, r) => s + r.tok_out, 0);
+    const cache = sessions.reduce((s, r) => s + r.tc, 0);
     document.getElementById('stats').innerHTML = `
       <div class="stat"><div class="num blue">${calls}</div><div class="lbl">API 调用</div></div>
       <div class="stat"><div class="num orange">${fmt(inp)}</div><div class="lbl">输入 tokens</div></div>
       <div class="stat"><div class="num green">${fmt(out)}</div><div class="lbl">输出 tokens</div></div>
+      <div class="stat"><div class="num" style="color:var(--orange)">${fmt(cache)}</div><div class="lbl">缓存 tokens</div></div>
     `;
 
     S.dailyData = daily;
