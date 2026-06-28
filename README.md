@@ -271,7 +271,7 @@ token-logger/
 ├── __init__.py        插件核心 — hook 注册、数据库写入（123 行）
 ├── plugin.yaml        插件元信息（名称、版本、hook 声明）
 ├── query.py           tusage CLI — 终端查询工具（122 行）
-└── usage-dash.py      tusage-dash — Web 仪表盘（510 行，单文件全栈）
+└── usage-dash.py      tusage-dash — Web 仪表盘（511 行，单文件全栈）
 ```
 
 ---
