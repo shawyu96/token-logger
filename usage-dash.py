@@ -45,7 +45,9 @@ HTML = r"""<!DOCTYPE html>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
          background: var(--bg); color: var(--text); padding: 24px; }
-  .header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; }
+
+  .head-wrap { position: sticky; top: 0; z-index: 100; background: var(--bg); padding-bottom: 4px; }
+  .header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; padding-top: 4px; }
   h1 { font-size: 22px; font-weight: 600; }
   .sub { color: var(--muted); font-size: 13px; }
 
@@ -133,6 +135,8 @@ HTML = r"""<!DOCTYPE html>
 </head>
 <body>
 
+<div class="head-wrap">
+
 <div class="header">
   <h1>⚡ Token 消耗</h1>
   <p class="sub" id="subtitle">加载中...</p>
@@ -152,6 +156,8 @@ HTML = r"""<!DOCTYPE html>
 </div>
 
 <div class="stats" id="stats"></div>
+
+</div>
 
 <div class="grid">
   <div class="card fix-card">
