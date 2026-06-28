@@ -464,7 +464,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             db = sqlite3.connect(USAGE_DB)
             db.row_factory = sqlite3.Row
             rows = db.execute(
-                f"SELECT datetime(timestamp,'unixepoch','{_TZ_OFFSET}') ts, model, input_tokens, output_tokens, cache_read, duration_ms FROM api_calls WHERE session_id=? ORDER BY timestamp",
+                f"SELECT datetime(timestamp,'unixepoch','{_TZ_OFFSET}') ts, model, input_tokens, output_tokens, cache_read, duration_ms FROM api_calls WHERE session_id=? ORDER BY timestamp DESC",
                 (sid,)
             ).fetchall()
             db.close()
