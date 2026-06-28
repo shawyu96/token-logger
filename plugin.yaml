@@ -1,0 +1,6 @@
+name: token-logger
+version: "1.0.0"
+description: "本地按次记录 LLM API 调用的 token 消耗和费用，支持按会话/轮次查询明细"
+author: user
+hooks:
+  - post_api_request
