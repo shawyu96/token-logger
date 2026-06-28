@@ -192,6 +192,12 @@ function fmt(n) {
 
 function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+function fmtDuration(ms) {
+  if (ms < 1000) return ms.toFixed(0) + 'ms';
+  if (ms < 60000) return (ms / 1000).toFixed(1) + 's';
+  return (ms / 60000).toFixed(1) + 'm';
+}
+
 // ── 分页条生成器 ──
 function renderPager(id, cur, pages, goFn) {
   document.getElementById(id).innerHTML = pages > 1
@@ -354,7 +360,7 @@ function renderDetail(sid) {
   let html = '<table class="detail-table"><thead><tr><th>#</th><th>时间</th><th>模型</th><th class="num">输入</th><th class="num">输出</th><th class="num">缓存</th><th class="num">耗时</th></tr></thead><tbody>';
   slice.forEach((t, i) => {
     const n = cur * pageSize + i + 1;
-    html += `<tr><td>${n}</td><td style="white-space:nowrap;font-size:11px;color:var(--muted)">${t.ts.slice(0,16)}</td><td>${esc(t.model||'')}</td><td class="num">${fmt(t.input_tokens)}</td><td class="num">${fmt(t.output_tokens)}</td><td class="num">${fmt(t.cache_read)}</td><td class="num">${t.duration_ms}ms</td></tr>`;
+    html += `<tr><td>${n}</td><td style="white-space:nowrap;font-size:11px;color:var(--muted)">${t.ts.slice(0,16)}</td><td>${esc(t.model||'')}</td><td class="num">${fmt(t.input_tokens)}</td><td class="num">${fmt(t.output_tokens)}</td><td class="num">${fmt(t.cache_read)}</td><td class="num">${fmtDuration(t.duration_ms)}</td></tr>`;
   });
   html += '</tbody></table>';
 
