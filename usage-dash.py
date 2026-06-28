@@ -272,13 +272,14 @@ function renderDaily(page) {
   renderPager('dailyPg', cur, pages, 'renderDaily');
 }
 
-// ── 对话排行（分页） ──
+// ── 对话排行（分页，按 token 总量降序）──
 function renderRank(page) {
+  const sorted = [...S.rankData].sort((a, b) => (b.ti + b.tok_out + b.tc) - (a.ti + a.tok_out + a.tc));
   const ps = 5;
-  const total = S.rankData.length;
+  const total = sorted.length;
   const pages = Math.ceil(total / ps) || 1;
   const cur = Math.min(page, pages - 1);
-  const slice = S.rankData.slice(cur * ps, (cur + 1) * ps);
+  const slice = sorted.slice(cur * ps, (cur + 1) * ps);
   document.getElementById('rankTable').innerHTML = slice.map(s => {
     const title = s.title || s.sid.slice(-14);
     const tot = s.ti + s.tok_out + s.tc;
@@ -488,6 +489,21 @@ def main():
     if not os.path.exists(USAGE_DB):
         print("（暂无数据，新会话跑几轮后再启动仪表盘）")
         return
+
+    # 检测端口是否已被本仪表盘占用
+    import subprocess
+    try:
+        r = subprocess.run(
+            ["lsof", "-ti", f":{PORT}"],
+            capture_output=True, text=True, timeout=3
+        )
+        if r.stdout.strip():
+            print(f"⚡ 仪表盘已在 http://127.0.0.1:{PORT} 运行中")
+            print("   如需重启，先运行: lsof -ti :8023 | xargs kill")
+            return
+    except:
+        pass
+
     port = PORT
     for attempt in range(100):
         try:
