@@ -71,7 +71,7 @@ FROM api_calls WHERE timestamp>=? GROUP BY day ORDER BY day DESC
             SELECT session_id sid, min(model) model, count(*) calls,
                    sum(input_tokens) ti, sum(output_tokens) tok_out, sum(cache_read) tc
             FROM api_calls WHERE timestamp>=?
-            GROUP BY sid ORDER BY min(timestamp) DESC
+            GROUP BY sid ORDER BY max(timestamp) DESC
         """, (since,)).fetchall()
         if not rows: return print("（暂无数据）")
         print(f"{'对话':<28} {'模型':<16} {'次':>3} {'输入':>9} {'输出':>9} {'缓存':>10}")
@@ -87,7 +87,7 @@ FROM api_calls WHERE timestamp>=? GROUP BY day ORDER BY day DESC
             SELECT session_id sid, count(*) calls,
                    sum(input_tokens) ti, sum(output_tokens) tok_out, sum(cache_read) tc
             FROM api_calls WHERE timestamp>=?
-            GROUP BY sid ORDER BY min(timestamp) DESC
+            GROUP BY sid ORDER BY max(timestamp) DESC
         """, (since,)).fetchall()
         if not rows: return print("（暂无数据）")
         print(f"{'ID(尾14位)':<18} {'对话':<28} {'次':>3} {'输入':>9} {'输出':>9} {'缓存':>10}")
@@ -110,7 +110,7 @@ FROM api_calls WHERE timestamp>=? GROUP BY day ORDER BY day DESC
         turns = db.execute(f"""
             SELECT datetime(timestamp,'unixepoch','{_TZ_OFFSET}') ts,
                    substr(turn_id,1,6) tid, model, input_tokens, output_tokens, cache_read, duration_ms
-            FROM api_calls WHERE session_id=? ORDER BY timestamp
+            FROM api_calls WHERE session_id=? ORDER BY timestamp DESC
         """, (sid_full,)).fetchall()
         title = title_of(sid_full)
         print(f"💬  {title or sid_full}")

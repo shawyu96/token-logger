@@ -422,7 +422,7 @@ def get_data(days=7):
         "sum(input_tokens) ti, sum(output_tokens) tok_out, sum(cache_read) tc, "
         "min(timestamp) first_ts "
         "FROM api_calls WHERE timestamp>=? "
-        "GROUP BY sid ORDER BY min(timestamp) DESC",
+        "GROUP BY sid ORDER BY max(timestamp) DESC",
         (since,)
     ).fetchall()
     db.close()
