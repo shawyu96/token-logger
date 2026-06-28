@@ -386,6 +386,7 @@ function goPage(sid, p) {
 }
 
 function doRefresh() {
+  S.store = {}; // 清空弹窗缓存，下次打开重新请求
   document.getElementById('reloadOverlay').classList.add('show');
   document.querySelector('.refresh-btn').classList.add('spinning');
   load();
