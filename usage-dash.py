@@ -88,7 +88,7 @@ HTML = r"""<!DOCTYPE html>
   .session-table th,
   .session-table td { text-align: center; }
   .session-table th.num,
-  .session-table td.num { text-align: right; font-variant-numeric: tabular-nums; padding-right: 16px; }
+  .session-table td.num { text-align: center; font-variant-numeric: tabular-nums; }
   .session-table td:first-child { text-align: left; max-width: 240px; }
   .session-table th:first-child { text-align: left; }
   .session-table .sess-name { font-weight: 500; color: var(--text); cursor: pointer; }
@@ -117,10 +117,6 @@ HTML = r"""<!DOCTYPE html>
   .modal-close { cursor: pointer; color: var(--muted); font-size: 18px; line-height: 1; padding: 0 4px; }
   .modal-close:hover { color: var(--text); }
   .modal-body { padding: 12px 20px 20px; overflow-y: auto; flex: 1; }
-
-  .badge { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: 500; }
-  .badge-flash { background: #1f6feb22; color: #58a6ff; }
-  .badge-pro   { background: #da363322; color: #f85149; }
 
   .fix-card { display: flex; flex-direction: column; min-height: 280px; }
   .fix-card .tab-wrap { flex: 1; overflow-y: auto; }
@@ -177,7 +173,7 @@ HTML = r"""<!DOCTYPE html>
 <div class="card" style="margin-top:16px">
   <h2 style="margin-bottom:12px">📋 所有对话</h2>
   <div style="overflow-x:auto"><table class="session-table"><thead><tr>
-    <th>对话</th><th>模型</th><th class="num">调用</th><th class="num">输入</th><th class="num">输出</th><th class="num">缓存</th><th></th>
+    <th>对话</th><th>创建时间</th><th class="num">调用</th><th class="num">输入</th><th class="num">输出</th><th class="num">缓存</th><th></th>
   </tr></thead><tbody id="sessionTable"></tbody></table></div>
   <div class="pg-bar" id="sessionPg"></div>
 </div>
@@ -243,7 +239,7 @@ async function load() {
     S.allSessions = sessions;
     S.filteredSessions = null;
 
-    const models = [...new Set(sessions.map(s => s.model).filter(Boolean))];
+    const models = [...new Set(sessions.flatMap(s => (s.model || '').split(',').filter(Boolean)))];
     const sel = document.getElementById('modelFilter');
     sel.innerHTML = '<option value="">全部模型</option>' + models.map(m => `<option value="${esc(m)}">${esc(m)}</option>`).join('');
 
@@ -298,10 +294,12 @@ function renderSession(page) {
   const slice = data.slice(cur * ps, (cur + 1) * ps);
   document.getElementById('sessionTable').innerHTML = slice.map(s => {
     const title = s.title || s.sid.slice(-14);
-    const badgeClass = s.model && s.model.includes('pro') ? 'badge-pro' : 'badge-flash';
+    const ts = new Date(s.first_ts * 1000);
+    const y = ts.getFullYear();
+    const timeStr = `${y}-${String(ts.getMonth()+1).padStart(2,'0')}-${String(ts.getDate()).padStart(2,'0')} ${String(ts.getHours()).padStart(2,'0')}:${String(ts.getMinutes()).padStart(2,'0')}`;
     return `<tr>
       <td class="sess-name" onclick="openModal('${s.sid}', '${esc(title)}')">${esc(title)}</td>
-      <td><span class="badge ${badgeClass}">${esc(s.model||'')}</span></td>
+      <td style="white-space:nowrap;font-size:11px;color:var(--muted)">${timeStr}</td>
       <td class="num">${s.calls}</td><td class="num">${fmt(s.ti)}</td><td class="num">${fmt(s.tok_out)}</td>
       <td class="num">${fmt(s.tc)}</td>
       <td><span style="color:var(--muted);font-size:11px;cursor:pointer" onclick="openModal('${s.sid}', '${esc(title)}')">▶</span></td>
@@ -324,7 +322,7 @@ function applyModelFilter() {
 
 function filterSessionTable(model) {
   S.filteredSessions = model
-    ? S.allSessions.filter(s => s.model === model)
+    ? S.allSessions.filter(s => s.model && s.model.split(',').includes(model))
     : null;
   S.rankData = S.filteredSessions || S.allSessions;
   renderRank(0);
@@ -361,7 +359,7 @@ function renderDetail(sid) {
   let html = '<table class="detail-table"><thead><tr><th>#</th><th>时间</th><th>模型</th><th class="num">输入</th><th class="num">输出</th><th class="num">缓存</th><th class="num">耗时</th></tr></thead><tbody>';
   slice.forEach((t, i) => {
     const n = cur * pageSize + i + 1;
-    html += `<tr><td>${n}</td><td style="white-space:nowrap;font-size:11px;color:var(--muted)">${t.ts.slice(0,16)}</td><td>${esc(t.model||'')}</td><td class="num">${fmt(t.input_tokens)}</td><td class="num">${fmt(t.output_tokens)}</td><td class="num">${fmt(t.cache_read)}</td><td class="num">${fmtDuration(t.duration_ms)}</td></tr>`;
+    html += `<tr><td>${String(n).padStart(2,'0')}</td><td style="white-space:nowrap;font-size:11px;color:var(--muted)">${t.ts.slice(0,16)}</td><td>${esc(t.model||'')}</td><td class="num">${fmt(t.input_tokens)}</td><td class="num">${fmt(t.output_tokens)}</td><td class="num">${fmt(t.cache_read)}</td><td class="num">${fmtDuration(t.duration_ms)}</td></tr>`;
   });
   html += '</tbody></table>';
 
@@ -419,7 +417,7 @@ def get_data(days=7):
         (since,)
     ).fetchall()
     sessions_raw = db.execute(
-        "SELECT session_id sid, min(model) model, count(*) calls, "
+        "SELECT session_id sid, group_concat(distinct model) model, count(*) calls, "
         "sum(input_tokens) ti, sum(output_tokens) tok_out, sum(cache_read) tc, "
         "min(timestamp) first_ts "
         "FROM api_calls WHERE timestamp>=? "
@@ -489,21 +487,6 @@ def main():
     if not os.path.exists(USAGE_DB):
         print("（暂无数据，新会话跑几轮后再启动仪表盘）")
         return
-
-    # 检测端口是否已被本仪表盘占用
-    import subprocess
-    try:
-        r = subprocess.run(
-            ["lsof", "-ti", f":{PORT}"],
-            capture_output=True, text=True, timeout=3
-        )
-        if r.stdout.strip():
-            print(f"⚡ 仪表盘已在 http://127.0.0.1:{PORT} 运行中")
-            print("   如需重启，先运行: lsof -ti :8023 | xargs kill")
-            return
-    except:
-        pass
-
     port = PORT
     for attempt in range(100):
         try:
